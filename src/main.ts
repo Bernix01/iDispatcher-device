@@ -1,14 +1,13 @@
-import 'neuets';
 import Vue from 'vue'
 import './plugins/fontawesome'
 import App from './App.vue'
+import router from './router'
+import store from './store'
 
 Vue.config.productionTip = false
 
-export default ({ router, store }: any) => {
-  return new Vue({
-    router,
-    store,
-    render: h => h(App)
-  });
-}
+new Vue({
+  router,
+  store,
+  render: h => h(App)
+}).$mount('#app')
