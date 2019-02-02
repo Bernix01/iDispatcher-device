@@ -7,17 +7,7 @@ export const config = {
     projectId: 'holcimiot'
   },
   scale: {
-    clockPin: 20,
-    datapin: 21
+    ready: 1.2
   },
-  faucet: 16,
-  rfid: {
-    sspi:{
-      clock: 15,     // pin number of SCLK
-      mosi: 11,      // pin number of MOSI
-      miso: 13,      // pin number of MISO
-      client: 12,    // pin number of CS
-    },
-    reset: 8
-  }
+  faucet: 16
 }

@@ -1,20 +1,36 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+    <transition name="fade">
+      <OfflineScreen v-if="isOffline" />
+    </transition>
+    <transition name="fade">
+      <SplashScreen v-if="!ready" />
+    </transition>
+    <b-navbar toggleable="md" type="dark" v-on:click="doLogin" class="p-1" variant="info">
+      <b-collapse is-nav id="nav_collapse">
+        <b-navbar-nav class="mx-auto">
+          <b-nav-text href="#">
+            <font-awesome-icon icon="shower" />
+            {{ status }}
+          </b-nav-text>
+        </b-navbar-nav>
+      </b-collapse>
+    </b-navbar>
+    <router-view />
   </div>
 </template>
 
 <style lang="scss">
+html,
+body {
+  height: 100vh;
+}
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
+  height: 100vh;
 }
 #nav {
   padding: 30px;
@@ -26,4 +42,57 @@
     }
   }
 }
+.navbar-text {
+  font-size: 2rem;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 1.5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
 </style>
+
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator'
+import { State } from 'vuex-class'
+import { config } from '@/config'
+import SplashScreen from '@/components/SplashScreen.vue'
+import OfflineScreen from '@/components/OfflineScreen.vue'
+@Component({
+  components: { SplashScreen, OfflineScreen }
+})
+export default class App extends Vue {
+  @State status!: string
+  @State filling!: boolean
+  @State fillingStart!: number
+  @State(state => state.formula.fillTime) fillTime!: number
+
+  private interval!: any
+
+  mounted () {
+    this.$store.dispatch('initialize', config.deviceId)
+  }
+
+  get ready (): boolean {
+    return this.$store.getters.ready
+  }
+
+  checkFilling () {
+    if (!this.filling) {
+      return
+    }
+    if (new Date().getMilliseconds() - this.fillingStart >= this.fillTime) {
+      this.$store.dispatch('stopFeed')
+    }
+  }
+
+  doLogin () {
+    this.$store.dispatch('doAuth', {
+      email: 'test@email.com',
+      password: 'test1234'
+    })
+  }
+}
+</script>

@@ -33,7 +33,6 @@ export default class Home extends Vue {
   @Getter scaleReady!: boolean
   @Getter fillComplete!: boolean
   created () {
-    console.log('connecting...')
     // ipcRenderer.on('loginData', (event: any, data: string) => {
     //   console.log(data)
     //   // do some parsing of data string and dispatch auth

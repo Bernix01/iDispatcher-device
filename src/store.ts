@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import Device from './models/Device'
 import Formula from './models/Formula'
 import User from './models/User'
+import { config } from './config'
 
 Vue.use(Vuex)
 
@@ -14,14 +15,15 @@ export default new Vuex.Store({
     status: '',
     scale: '0',
     fillingStart: 0,
-    filling: false
+    filling: false,
+    operationId: ''
   },
   getters: {
     ready (state): boolean {
       return state.device && state.device.serial !== undefined && state.device.serial.length > 0
     },
     scaleReady (state): boolean {
-      return parseFloat(state.scale) > 120
+      return parseFloat(state.scale) > config.scale.ready
     },
     fillComplete (state): boolean {
       return parseFloat(state.scale) >= state.formula.fillWeight
@@ -35,11 +37,13 @@ export default new Vuex.Store({
     },
     setUser (state, user: User) {
       state.currentUser = user
+      state.operationId = new Date().getMilliseconds().toString()
     },
     finishWork (state) {
       state.currentUser = {} as User
       state.filling = false
       state.fillingStart = 0
+      state.operationId = ''
     },
     setScale (state, scale: string) {
       state.scale = scale
@@ -65,7 +69,8 @@ export default new Vuex.Store({
     async report ({ commit, state }, action) {
       await Vue.$functions.httpsCallable('report')({
         duid: state.device.id,
-        action: action
+        action: action,
+        operationId: state.operationId
       })
     },
     async doAuth ({ commit, dispatch, state }, userdata: { email: string; password: string }) {
@@ -80,8 +85,8 @@ export default new Vuex.Store({
       commit('setUser', user)
       dispatch('report', 'login')
     },
-    startFeed ({ commit, dispatch }) {
-      console.log('fill starts!')
+    startFeed ({ state, commit, dispatch }) {
+      if (!state.currentUser) return
 
       // ipcRenderer.send('faucet', true)
       commit('set_feed_start')
@@ -93,11 +98,11 @@ export default new Vuex.Store({
       if (!state.currentUser.name) {
         return
       }
-      if (currWh >= 120 && !state.filling) {
+      if (currWh >= config.scale.ready && !state.filling) {
         dispatch('startFeed')
         return
       }
-      if (currWh <= 120 && state.filling) {
+      if (currWh <= config.scale.ready && state.filling) {
         dispatch('stopFeed', 'fill_interrupted')
       }
       if (currWh >= state.formula.fillWeight && state.filling) {
