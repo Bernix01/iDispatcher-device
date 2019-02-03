@@ -87,14 +87,14 @@ export default new Vuex.Store({
     },
     startFeed ({ state, commit, dispatch }) {
       if (!state.currentUser) return
-
+      Vue.$socket.emit('facuet', true)
       // ipcRenderer.send('faucet', true)
       commit('set_feed_start')
       dispatch('report', 'fill_start')
     },
-    setScale ({ commit, dispatch, state }, scaledata: { scale: string }) {
-      commit('setScale', scaledata.scale)
-      const currWh = parseFloat(scaledata.scale)
+    HIO_SCALE ({ commit, dispatch, state }, scale: string) {
+      commit('setScale', scale)
+      const currWh = parseFloat(scale)
       if (!state.currentUser.name) {
         return
       }
@@ -117,11 +117,18 @@ export default new Vuex.Store({
     },
     async stopFeed ({ commit, dispatch }, reason: string) {
       commit('stopFeed')
+      Vue.$socket.emit('facuet', true)
       // ipcRenderer.send('faucet', false)
       dispatch('report', reason)
 
       await Vue.$fAuth.signOut()
       commit('finishWork')
+    },
+    async HIO_LOGIN ({ dispatch }) {
+      dispatch('doAuth', {
+        email: 'test@email.com',
+        password: 'test1234'
+      })
     }
   }
 })

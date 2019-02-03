@@ -15,8 +15,7 @@ Vue.use(
     connection: 'ws://localhost:3000',
     vuex: {
       store,
-      actionPrefix: 'SOCKET_',
-      mutationPrefix: 'SOCKET_'
+      actionPrefix: 'HIO_'
     }
   })
 )

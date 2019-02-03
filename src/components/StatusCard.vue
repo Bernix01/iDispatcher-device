@@ -24,11 +24,11 @@ export default class UserCard extends Vue {
   @Prop() private fillComplete!: boolean
 
   putGarrafon () {
-    this.$store.dispatch('setScale', { scale: '1.3' })
+    this.$store.dispatch('HIO_SCALE', { scale: '1.3' })
   }
 
   fillGarrafon () {
-    this.$store.dispatch('setScale', { scale: '6.0' })
+    this.$store.dispatch('HIO_SCALE', { scale: '17.0' })
   }
 }
 </script>

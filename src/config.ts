@@ -8,6 +8,5 @@ export const config = {
   },
   scale: {
     ready: 1.2
-  },
-  faucet: 16
+  }
 }

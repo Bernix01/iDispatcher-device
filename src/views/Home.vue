@@ -32,22 +32,6 @@ export default class Home extends Vue {
   @State formula!: Formula
   @Getter scaleReady!: boolean
   @Getter fillComplete!: boolean
-  created () {
-    // ipcRenderer.on('loginData', (event: any, data: string) => {
-    //   console.log(data)
-    //   // do some parsing of data string and dispatch auth
-    //   this.$store.dispatch('doAuth', {
-    //     email: 'test@email.com',
-    //     password: 'test1234'
-    //   })
-    // })
-    // ipcRenderer.on('scaleData', (event: any, data: string) => {
-    //   // do some parsing of data string and dispatch auth
-    //   this.$store.dispatch('setScale', {
-    //     scale: data
-    //   })
-    // })
-  }
 }
 </script>
 
