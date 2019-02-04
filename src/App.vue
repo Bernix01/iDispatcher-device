@@ -1,21 +1,5 @@
 <template>
   <div id="app">
-    <transition name="fade">
-      <OfflineScreen v-if="isOffline" />
-    </transition>
-    <transition name="fade">
-      <SplashScreen v-if="!ready" />
-    </transition>
-    <b-navbar toggleable="md" type="dark" v-on:click="doLogin" class="p-1" variant="info">
-      <b-collapse is-nav id="nav_collapse">
-        <b-navbar-nav class="mx-auto">
-          <b-nav-text href="#">
-            <font-awesome-icon icon="shower" />
-            {{ status }}
-          </b-nav-text>
-        </b-navbar-nav>
-      </b-collapse>
-    </b-navbar>
     <router-view />
   </div>
 </template>
@@ -73,21 +57,12 @@ export default class App extends Vue {
 
   mounted () {
     this.$store.dispatch('initialize', config.deviceId)
+    this.$socket.emit('status')
   }
 
   get ready (): boolean {
     return this.$store.getters.ready
   }
-
-  checkFilling () {
-    if (!this.filling) {
-      return
-    }
-    if (new Date().getMilliseconds() - this.fillingStart >= this.fillTime) {
-      this.$store.dispatch('stopFeed')
-    }
-  }
-
   doLogin () {
     this.$store.dispatch('doAuth', {
       email: 'test@email.com',

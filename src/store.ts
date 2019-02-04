@@ -14,9 +14,13 @@ export default new Vuex.Store({
     currentUser: {} as User,
     status: '',
     scale: '0',
+    scaleOnline: false,
+    rfidOnline: false,
     fillingStart: 0,
+    fillComplete: false,
     filling: false,
-    operationId: ''
+    operationId: '',
+    history: []
   },
   getters: {
     ready (state): boolean {
@@ -24,9 +28,6 @@ export default new Vuex.Store({
     },
     scaleReady (state): boolean {
       return parseFloat(state.scale) > config.scale.ready
-    },
-    fillComplete (state): boolean {
-      return parseFloat(state.scale) >= state.formula.fillWeight
     }
   },
   mutations: {
@@ -54,22 +55,23 @@ export default new Vuex.Store({
     },
     stopFeed (state) {
       state.filling = false
+    },
+    scale_status (state, status: boolean) {
+      state.scaleOnline = status
     }
   },
   actions: {
     async initialize ({ commit }, deviceId) {
       commit('setupDevice', await Vue.$functions.httpsCallable('fetchDevice')({ duid: deviceId }))
       if (Vue.$fAuth.currentUser !== null) {
-        commit('setUser', {
-          name: Vue.$fAuth.currentUser.displayName,
-          id: Vue.$fAuth.currentUser.uid
-        })
+        await Vue.$fAuth.signOut()
       }
     },
     async report ({ commit, state }, action) {
       await Vue.$functions.httpsCallable('report')({
         duid: state.device.id,
         action: action,
+        scale: state.scale,
         operationId: state.operationId
       })
     },
@@ -85,44 +87,30 @@ export default new Vuex.Store({
       commit('setUser', user)
       dispatch('report', 'login')
     },
+    async doMasterAuth ({ state, commit, dispatch }) {
+      const user = new User('admin' + state.device.serial, '0000')
+      commit('setUser', user)
+      dispatch('report', 'login')
+    },
     startFeed ({ state, commit, dispatch }) {
       if (!state.currentUser) return
-      Vue.$socket.emit('facuet', true)
-      // ipcRenderer.send('faucet', true)
       commit('set_feed_start')
       dispatch('report', 'fill_start')
     },
-    HIO_SCALE ({ commit, dispatch, state }, scale: string) {
+    HIO_SCALE ({ commit }, scale: string) {
       commit('setScale', scale)
-      const currWh = parseFloat(scale)
-      if (!state.currentUser.name) {
-        return
-      }
-      if (currWh >= config.scale.ready && !state.filling) {
-        dispatch('startFeed')
-        return
-      }
-      if (currWh <= config.scale.ready && state.filling) {
-        dispatch('stopFeed', 'fill_interrupted')
-      }
-      if (currWh >= state.formula.fillWeight && state.filling) {
-        dispatch('stopFeed', 'fill_end')
-      }
-      if (
-        new Date().getMilliseconds() - state.fillingStart > state.formula.fillTime &&
-        state.filling
-      ) {
-        dispatch('stopFeed', 'fill_end')
-      }
     },
-    async stopFeed ({ commit, dispatch }, reason: string) {
+    async stopFeed ({ state, commit, dispatch }, reason: string) {
+      if (!state.filling) return
       commit('stopFeed')
-      Vue.$socket.emit('facuet', true)
-      // ipcRenderer.send('faucet', false)
       dispatch('report', reason)
-
       await Vue.$fAuth.signOut()
-      commit('finishWork')
+      setTimeout(() => {
+        commit('finishWork')
+      }, 2000)
+    },
+    HIO_STATUS ({ commit }, data: any) {
+      commit('scale_status', data.scale)
     },
     async HIO_LOGIN ({ dispatch }) {
       dispatch('doAuth', {
