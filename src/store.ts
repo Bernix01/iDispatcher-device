@@ -75,20 +75,27 @@ export default new Vuex.Store({
         operationId: state.operationId
       })
     },
-    async doAuth ({ commit, dispatch, state }, userdata: { email: string; password: string }) {
+    async doAuth ({ commit, dispatch, state }, uid: string) {
       if (state.currentUser && state.currentUser.name) {
         return
       }
-      const userCredential = await Vue.$fAuth.signInWithEmailAndPassword(
-        userdata.email,
-        userdata.password
-      )
-      const user = new User(userCredential.user!.displayName!, userCredential.user!.uid)
-      commit('setUser', user)
-      dispatch('report', 'login')
+      try {
+        const { data } = await Vue.$functions.httpsCallable('doAuth')({
+          uid: uid,
+          duid: state.device.id
+        })
+        if (!data.success) {
+        }
+        const { user } = data
+        commit('setUser', new User(`${user.first_name} ${user.last_name}`, user.id))
+        dispatch('report', 'login')
+      } catch (error) {
+        dispatch('doMasterAuth', uid)
+      }
     },
-    async doMasterAuth ({ state, commit, dispatch }) {
-      const user = new User('admin' + state.device.serial, '0000')
+    async doMasterAuth ({ state, commit, dispatch }, uid: string) {
+      if (uid !== '[245, 84, 158, 67, 124]') return
+      const user = new User('supervisor-' + state.device.serial, '0000')
       commit('setUser', user)
       dispatch('report', 'login')
     },
@@ -104,7 +111,6 @@ export default new Vuex.Store({
       if (!state.filling) return
       commit('stopFeed')
       dispatch('report', reason)
-      await Vue.$fAuth.signOut()
       setTimeout(() => {
         commit('finishWork')
       }, 2000)
@@ -112,11 +118,9 @@ export default new Vuex.Store({
     HIO_STATUS ({ commit }, data: any) {
       commit('scale_status', data.scale)
     },
-    async HIO_LOGIN ({ dispatch }) {
-      dispatch('doAuth', {
-        email: 'test@email.com',
-        password: 'test1234'
-      })
+    async HIO_LOGIN ({ dispatch }, uid: string) {
+      console.log(uid)
+      dispatch('doAuth', uid)
     }
   }
 })

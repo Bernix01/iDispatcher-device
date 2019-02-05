@@ -58,7 +58,7 @@ export default class Home extends Vue {
   @State scale!: string
   @State filling!: boolean
   @State fillingStart!: number
-  @State histoy!: { status: string; who: string }[]
+  @State history!: { status: string; who: string }[]
   @State scaleOnline!: boolean
   @Getter scaleReady!: boolean
   @Getter fillComplete!: boolean
@@ -183,4 +183,5 @@ export default class Home extends Vue {
     font-size: 20rem;
   }
 }
+
 </style>
