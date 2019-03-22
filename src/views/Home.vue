@@ -21,7 +21,7 @@
         <br>
         <b-card title="Historial">
           <div v-for="(i, hit) of history" :key="i">
-            <h5>{{hit.statue}}</h5>
+            <h5>{{hit.status}}</h5>
             <h6>{{hit.who}}</h6>
           </div>
         </b-card>
